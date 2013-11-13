@@ -8,9 +8,10 @@
 #include <thread>
 #include <list>
 #include <iostream>
+#include <algorithm>
+
 #include <bits/stl_list.h>
 #include <bullet/LinearMath/btVector3.h>
-
 #include <boost/timer.hpp>
 
 #include "Raytracer.h"
@@ -62,26 +63,89 @@ void Raytracer::render(Scene &scene, Buffer &buf) {
 }
 
 
-class RayHit : btCollisionWorld::RayResultCallback {
+class RayHit : public btCollisionWorld::RayResultCallback {
 public:
-//	virtual btScalar addSingleResult(LocalRayResult &rayResult, bool normalInWorldSpace) {
-//
-//	}
+	struct Hit {
+		float hitFrac;
+		btVector3 normal;
+		SceneObject *so;
 
-	btVector3 color = btVector3(0, 0, 0);
+		btVector3 pos(const btVector3 &from, const btVector3 &to) {
+			return from.lerp(to, hitFrac);
+		};
+
+		int operator<(const Hit &other) const {
+			return hitFrac > other.hitFrac ? 1 : -1;
+		}
+	};
+
+	const btVector3 &from, &to;
+
+	const Scene &scene;
+
+	static vector<Hit> hits;//hits (static to avoid memory overhead)
+
+	RayHit(const Scene &scene, const btVector3 &from, const btVector3 &to) : scene(scene), from(from), to(to) {
+		hits.clear();
+	}
+
+	virtual btScalar addSingleResult(btCollisionWorld::LocalRayResult &rayResult, bool normalInWorldSpace) {
+		SceneObject *so = (SceneObject*)rayResult.m_collisionObject->getUserPointer();
+
+		hits.push_back({
+			rayResult.m_hitFraction,
+			rayResult.m_hitNormalLocal,
+			so,
+		});
+
+		return rayResult.m_hitFraction;
+	}
+
+	btVector3 getColor() {
+		if (!hits.size())
+			return btVector3(0, 0, 0);
+
+		sort(hits.begin(), hits.end());
+
+
+		auto diffuse = [] (btVector3 light, btVector3 pos, btVector3 normal) {
+			btVector3 lightNormal = (light - pos).normalize();
+			return lightNormal.dot(normal) + .2;
+		};
+
+		//this is kinda like a shader from here. Except you get all the hits in the z stack
+
+
+		btVector4 ret = btVector4(0, 0, 0, 0);
+		for (Hit &hit : hits) {
+			btVector3 illum(0, 0, 0), pos = hit.pos(from, to);
+
+			for (Light *l : scene.lights) {
+				illum += diffuse(l->position, pos, hit.normal) * hit.so->color;
+			}
+
+			ret.setValue(illum.x(), illum.y(), illum.z(), 1);
+			break;
+
+//			if (ret.w() >= 1)
+//				break;
+		}
+
+//		if (ret.w() < 1)
+//			ret *= ret.w();//fade remaining alpha to black
+
+		return ret;
+	}
 };
+vector<RayHit::Hit> RayHit::hits;
 
 btVector3 Raytracer::trace(const btVector3 &from, const btVector3 &direction) {
 	btVector3 to = from + direction * 1000;
-	btCollisionWorld::ClosestRayResultCallback rayHit(from, to);
+
+	RayHit rayHit(*scene, from, to);
 	scene->dynamicsWorld->rayTest(from, to, rayHit);
 
-	if (!rayHit.hasHit()) {
-		return btVector3(.2, .2, .2);
-	} else {
-		return btVector3(1, rayHit.m_closestHitFraction * 200, 1);
-	}
-//	return rayHit.color;
+	return rayHit.getColor();
 }
 
 

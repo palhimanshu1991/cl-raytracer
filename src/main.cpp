@@ -40,7 +40,9 @@ public:
 void setupScene(Scene &scene) {
 	scene.add(new Ball(btVector3(0, 0, 0), .5, btVector4(1, 0, 0, 1)));
 	scene.add(new Ball(btVector3(1, 1, 0), .6, btVector4(0, 1, 0, 1)));
-	scene.add(new Ball(btVector3(.2, -.3, -1), 1, btVector4(0, 0, 1, 1)));
+	scene.add(new Ball(btVector3(.2, -.3, -10), 1, btVector4(0, 0, 1, 1)));
+
+	scene.add(new Light(btVector3(-3, -3, -3)));
 }
 
 int main() {
@@ -56,5 +58,10 @@ int main() {
 
 	Screen screen(w, h);
 	screen.display(buf);
-	SDL_Delay(3 * 1000);
+
+	SDL_Event ev;
+	while (SDL_WaitEvent(&ev)) {
+		if (ev.type == SDL_QUIT)
+			break;
+	}
 }

@@ -51,6 +51,7 @@ public:
 			);
 			rb = new btRigidBody(rbci);
 			rb->setWorldTransform(btTransform(btQuaternion::getIdentity(), position));
+			rb->setUserPointer(this);
 		}
 
 		return rb;
@@ -60,9 +61,16 @@ public:
 
 };
 
+class Light {
+public:
+	Light(btVector3 position) : position(position) {}
+	btVector3 position;
+};
+
 class Scene {
 public:
 	std::list<SceneObject*> objects;
+	std::list<Light*> lights;
 	btDiscreteDynamicsWorld *dynamicsWorld;
 
 	btVector3 cameraPos = btVector3(0, 0, 5);
@@ -81,12 +89,17 @@ public:
 	void add(SceneObject *obj) {
 		objects.push_back(obj);
 		dynamicsWorld->addRigidBody(obj->getRigidBody());
+	}
 
+	void add(Light *obj) {
+		lights.push_back(obj);
 	}
 
 	virtual ~Scene() {
 		for (SceneObject *b : objects)
 			delete b;
+		for (Light *l : lights)
+			delete l;
 
 		delete dynamicsWorld;
 		delete solver;
