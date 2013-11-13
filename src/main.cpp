@@ -45,7 +45,9 @@ void setupScene(Scene &scene) {
 	scene.add(new Ball(btVector3(-3, 2, 0), 2, btVector4(0, 1, 0, 1)));
 	scene.add(new Ball(btVector3(3, 2, 0), 2, btVector4(0, 0, 1, 1)));
 
-	scene.add(new Light(btVector3(-3, -3, 10)));
+	scene.add(new Ball(btVector3(0, 0, -10), 10, btVector4(1, 1, 1, 1)));
+
+	scene.add(new Light(btVector3(-3, -3, 20)));
 }
 
 int main() {

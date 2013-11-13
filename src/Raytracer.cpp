@@ -126,14 +126,29 @@ public:
 			btVector4 illum(0, 0, 0, 0);
 			btVector3 pos = hit.pos(from, to);
 
+			//the normals Bullet gives are crap, so let's recalcualte it
+			btVector3 normal = hit.normal;
+//			btVector3 normal = (pos - hit.so->position).normalize();//assuming only spheres
+
+
+			if (false) {
+				//dump normals
+				return btVector4(
+					normal.x() * .5 + .5,
+					normal.y() * .5 + .5,
+					normal.z() * .5 + .5,
+					1
+				);
+			}
+
 			for (Light *l : context.scene->lights) {
-				double strength = diffuseStrength(l->position, pos, hit.normal) * .5 + .1;
+				double strength = diffuseStrength(l->position, pos, normal) * .5 + .1;
 				strength = clamp(strength);
 				illum += strength * hit.so->color;
 			}
 
 			//bounce!
-			btVector3 newDirection = reflect(pos - eye, hit.normal);
+			btVector3 newDirection = reflect(pos - eye, normal);
 			btVector4 reflectColor = context.rt->trace(pos, newDirection, context) * .5;
 //			btVector4 reflectColor(0, 0, 0, 0);
 
@@ -169,7 +184,7 @@ btVector4 Raytracer::trace(const btVector3 &from, const btVector3 &direction, co
 
 	btVector3 to = from + direction * 1000;
 
-	RayHit rayHit(context, from, to);
+	RayHit rayHit(newContext, from, to);
 	scene->dynamicsWorld->rayTest(from, to, rayHit);
 
 	if (!rayHit.hasHit())
