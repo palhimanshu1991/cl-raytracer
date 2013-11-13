@@ -15,13 +15,15 @@ SET(CMAKE_CXX_FLAGS "-g -Wall -Wno-reorder -Wno-narrowing -std=c++11")
 
 SET(CMAKE_EXE_LINKER_FLAGS "-L/usr/lib/x86_64-linux-gnu -L/usr/local/lib")
 
+ADD_DEFINITIONS(-DBT_USE_DOUBLE_PRECISION)
 
 ADD_EXECUTABLE(raytracer ${sources})
 
 TARGET_LINK_LIBRARIES(
 	raytracer
 	
-	pthread z
-	GL GLU
-	SDL openal
+	pthread
+	#GL GLU
+	SDL
+	BulletDynamics BulletCollision LinearMath
 )
