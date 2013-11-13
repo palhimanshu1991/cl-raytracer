@@ -46,11 +46,17 @@ void Raytracer::render(Scene &scene, Buffer &buf) {
 	float size = 5, size2 = size / 2.0;
 	float scale = size / (float)buf.width;
 
+	RaytracerContext context = {
+		this,
+		&scene,
+		0
+	};
+
 	for (int y = 0; y < buf.height; ++y) {
 
 		for (int x = 0; x < buf.width; ++x) {
 			btVector3 from = fromBase + btVector3(x * scale - size2, -y * scale + size2, 0);
-			btVector3 color = trace(from, dir);
+			btVector3 color = trace(from, dir, context);
 
 			buf(x, y) = toColor(color);
 
@@ -82,11 +88,11 @@ public:
 
 	const btVector3 &from, &to;
 
-	const Scene &scene;
+	const Raytracer::RaytracerContext &context;
 
 	static vector<Hit> hits;//hits (static to avoid memory overhead)
 
-	RayHit(const Scene &scene, const btVector3 &from, const btVector3 &to) : scene(scene), from(from), to(to) {
+	RayHit(const Raytracer::RaytracerContext &context, const btVector3 &from, const btVector3 &to) : context(context), from(from), to(to) {
 		hits.clear();
 	}
 
@@ -99,42 +105,41 @@ public:
 			so,
 		});
 
+		//make hasHit work
+		m_collisionObject = rayResult.m_collisionObject;
+
 		return rayResult.m_hitFraction;
 	}
 
-	btVector3 getColor() {
+	btVector4 getColor() {
 		if (!hits.size())
-			return btVector3(0, 0, 0);
-
+			return btVector4(0, 0, 0, 0);
 		sort(hits.begin(), hits.end());
 
-		if (hits.size() > 1)
-		{
-//			cout <<" hits ";
-			float v = 0;
-			for (Hit &hit : hits) {
-				if (hit.hitFrac < v)
-					cout <<" p " <<hit.hitFrac<<endl;
-				v = hit.hitFrac;
-			}
-//			cout <<endl;
-
-		}
 
 		//this is kinda like a shader from here. Except you get all the hits in the z stack
 
+		btVector3 eye(context.scene->cameraPos);
 
 		btVector4 ret = btVector4(0, 0, 0, 0);
 		for (Hit &hit : hits) {
-			btVector3 illum(0, 0, 0), pos = hit.pos(from, to);
+			btVector4 illum(0, 0, 0, 0);
+			btVector3 pos = hit.pos(from, to);
 
-			for (Light *l : scene.lights) {
-				double strength = diffuseStrength(l->position, pos, hit.normal) + .1;
+			for (Light *l : context.scene->lights) {
+				double strength = diffuseStrength(l->position, pos, hit.normal) * .5 + .1;
 				strength = clamp(strength);
 				illum += strength * hit.so->color;
 			}
 
-			ret.setValue(illum.x(), illum.y(), illum.z(), 1);
+			//bounce!
+			btVector3 newDirection = reflect(pos - eye, hit.normal);
+			btVector4 reflectColor = context.rt->trace(pos, newDirection, context) * .5;
+//			btVector4 reflectColor(0, 0, 0, 0);
+
+
+
+			ret = illum + reflectColor;
 			break;
 
 //			if (ret.w() >= 1)
@@ -149,11 +154,26 @@ public:
 };
 vector<RayHit::Hit> RayHit::hits;
 
-btVector3 Raytracer::trace(const btVector3 &from, const btVector3 &direction) {
+btVector4 Raytracer::trace(const btVector3 &from, const btVector3 &direction, const RaytracerContext &context) {
+	auto getSky = [&] {
+		return btVector4(0, 0, 0, 0);
+//		return btVector4(direction.x(), direction.y(), direction.z(), 0);
+	};
+
+	if (context.depth > 4)
+		return btVector4(1, 1, 1, 1);
+//		return getSky();
+
+	RaytracerContext newContext(context);
+	newContext.depth++;
+
 	btVector3 to = from + direction * 1000;
 
-	RayHit rayHit(*scene, from, to);
+	RayHit rayHit(context, from, to);
 	scene->dynamicsWorld->rayTest(from, to, rayHit);
+
+	if (!rayHit.hasHit())
+		return getSky();
 
 	return rayHit.getColor();
 }

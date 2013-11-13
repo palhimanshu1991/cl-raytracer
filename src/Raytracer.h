@@ -13,13 +13,18 @@
 
 class Raytracer {
 public:
+	struct RaytracerContext {
+		Raytracer *rt;
+		Scene *scene;
+		int depth;
+	};
+
 	Raytracer() {}
 
 	void render(Scene &scene, Buffer &buf);
 
-protected:
 	/* Raytraces from the given point in the given direction. Returns the pixel color. */
-	btVector3 trace(const btVector3 &from, const btVector3 &direction);
+	btVector4 trace(const btVector3 &from, const btVector3 &direction, const RaytracerContext &context);
 
 	Scene *scene = nullptr;
 
