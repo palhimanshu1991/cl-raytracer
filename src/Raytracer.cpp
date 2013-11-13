@@ -11,6 +11,8 @@
 #include <bits/stl_list.h>
 #include <bullet/LinearMath/btVector3.h>
 
+#include <boost/timer.hpp>
+
 #include "Raytracer.h"
 #include "Buffer.h"
 #include "Scene.h"
@@ -25,6 +27,9 @@ inline int toColor(const btVector3 &color) {
 }
 
 void Raytracer::render(Scene &scene, Buffer &buf) {
+	boost::timer t;
+
+	this->scene = &scene;
 
 //	float yStep = scene.yFov / buf.height, yAng = -scene.yFov / 2.0;
 //	float xStep = scene.xFov / buf.width, xAng = -scene.xFov / 2.0;
@@ -38,7 +43,7 @@ void Raytracer::render(Scene &scene, Buffer &buf) {
 
 	btVector3 fromBase = scene.cameraPos, dir = scene.cameraDir;
 	float size = 5, size2 = size / 2.0;
-	float scale = buf.width / size;
+	float scale = size / (float)buf.width;
 
 	for (int y = 0; y < buf.height; ++y) {
 
@@ -52,11 +57,31 @@ void Raytracer::render(Scene &scene, Buffer &buf) {
 		}
 //		yAng += yStep;
 	}
+
+	cout << "Render took " << t.elapsed() * 1000 << "ms\n";
 }
 
-btVector3 Raytracer::trace(const btVector3 &from, const btVector3 &direction) {
-	return btVector3(1, .5, .5);
 
+class RayHit : btCollisionWorld::RayResultCallback {
+public:
+//	virtual btScalar addSingleResult(LocalRayResult &rayResult, bool normalInWorldSpace) {
+//
+//	}
+
+	btVector3 color = btVector3(0, 0, 0);
+};
+
+btVector3 Raytracer::trace(const btVector3 &from, const btVector3 &direction) {
+	btVector3 to = from + direction * 1000;
+	btCollisionWorld::ClosestRayResultCallback rayHit(from, to);
+	scene->dynamicsWorld->rayTest(from, to, rayHit);
+
+	if (!rayHit.hasHit()) {
+		return btVector3(.2, .2, .2);
+	} else {
+		return btVector3(1, rayHit.m_closestHitFraction * 200, 1);
+	}
+//	return rayHit.color;
 }
 
 

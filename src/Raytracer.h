@@ -21,6 +21,8 @@ protected:
 	/* Raytraces from the given point in the given direction. Returns the pixel color. */
 	btVector3 trace(const btVector3 &from, const btVector3 &direction);
 
+	Scene *scene = nullptr;
+
 };
 
 #endif	/* RAYTRACER_H */

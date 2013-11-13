@@ -15,14 +15,48 @@
 
 class SceneObject {
 public:
-	virtual ~SceneObject() = 0;
+	virtual ~SceneObject() {
+		delete rb;
+	}
 
 	btVector4 color = btVector4(1, 0, 0, 1);
 	btVector3 position = btVector3(0, 0, 0);
+
+	virtual btRigidBody* getRigidBody() = 0;
+
+	btDefaultMotionState ms;
+	btRigidBody *rb = nullptr;
 };
 
-class Ball {
+class Ball : public SceneObject{
 public:
+	Ball(btVector3 pos, float radius, btVector4 color) : shape(radius) {
+		position = pos;
+		this->color = color;
+
+		this->radius = radius;
+
+
+	}
+
+	float radius;
+
+	btRigidBody* getRigidBody() {
+		if (!rb) {
+			btRigidBody::btRigidBodyConstructionInfo rbci(
+				1,
+				&ms,
+				&shape,
+				btVector3(1, 1, 1)
+			);
+			rb = new btRigidBody(rbci);
+			rb->setWorldTransform(btTransform(btQuaternion::getIdentity(), position));
+		}
+
+		return rb;
+	}
+
+	btSphereShape shape;
 
 };
 
@@ -32,7 +66,7 @@ public:
 	btDiscreteDynamicsWorld *dynamicsWorld;
 
 	btVector3 cameraPos = btVector3(0, 0, 5);
-	btVector3 cameraDir = btVector3(0, 0, 1);
+	btVector3 cameraDir = btVector3(0, 0, -1);
 	float xFov = 45, yFov = 45;
 
 	Scene() {
@@ -45,6 +79,8 @@ public:
 	}
 
 	void add(SceneObject *obj) {
+		objects.push_back(obj);
+		dynamicsWorld->addRigidBody(obj->getRigidBody());
 
 	}
 

@@ -38,7 +38,9 @@ public:
 };
 
 void setupScene(Scene &scene) {
-//	scene.add(new Ball(btVector3()));
+	scene.add(new Ball(btVector3(0, 0, 0), .5, btVector4(1, 0, 0, 1)));
+	scene.add(new Ball(btVector3(1, 1, 0), .6, btVector4(0, 1, 0, 1)));
+	scene.add(new Ball(btVector3(.2, -.3, -1), 1, btVector4(0, 0, 1, 1)));
 }
 
 int main() {
