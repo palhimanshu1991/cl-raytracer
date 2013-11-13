@@ -49,7 +49,7 @@ void Raytracer::render(Scene &scene, Buffer &buf) {
 	for (int y = 0; y < buf.height; ++y) {
 
 		for (int x = 0; x < buf.width; ++x) {
-			btVector3 from = fromBase + btVector3(x * scale - size2, y * scale - size2, 0);
+			btVector3 from = fromBase + btVector3(x * scale - size2, -y * scale + size2, 0);
 			btVector3 color = trace(from, dir);
 
 			buf(x, y) = toColor(color);
@@ -62,6 +62,7 @@ void Raytracer::render(Scene &scene, Buffer &buf) {
 	cout << "Render took " << t.elapsed() * 1000 << "ms\n";
 }
 
+#include "ShaderFuncs.h"
 
 class RayHit : public btCollisionWorld::RayResultCallback {
 public:
@@ -74,8 +75,8 @@ public:
 			return from.lerp(to, hitFrac);
 		};
 
-		int operator<(const Hit &other) const {
-			return hitFrac > other.hitFrac ? 1 : -1;
+		bool operator<(const Hit &other) const {
+			return hitFrac < other.hitFrac;
 		}
 	};
 
@@ -107,11 +108,18 @@ public:
 
 		sort(hits.begin(), hits.end());
 
+		if (hits.size() > 1)
+		{
+//			cout <<" hits ";
+			float v = 0;
+			for (Hit &hit : hits) {
+				if (hit.hitFrac < v)
+					cout <<" p " <<hit.hitFrac<<endl;
+				v = hit.hitFrac;
+			}
+//			cout <<endl;
 
-		auto diffuse = [] (btVector3 light, btVector3 pos, btVector3 normal) {
-			btVector3 lightNormal = (light - pos).normalize();
-			return lightNormal.dot(normal) + .2;
-		};
+		}
 
 		//this is kinda like a shader from here. Except you get all the hits in the z stack
 
@@ -121,7 +129,9 @@ public:
 			btVector3 illum(0, 0, 0), pos = hit.pos(from, to);
 
 			for (Light *l : scene.lights) {
-				illum += diffuse(l->position, pos, hit.normal) * hit.so->color;
+				double strength = diffuseStrength(l->position, pos, hit.normal) + .1;
+				strength = clamp(strength);
+				illum += strength * hit.so->color;
 			}
 
 			ret.setValue(illum.x(), illum.y(), illum.z(), 1);

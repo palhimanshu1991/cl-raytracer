@@ -38,11 +38,14 @@ public:
 };
 
 void setupScene(Scene &scene) {
-	scene.add(new Ball(btVector3(0, 0, 0), .5, btVector4(1, 0, 0, 1)));
-	scene.add(new Ball(btVector3(1, 1, 0), .6, btVector4(0, 1, 0, 1)));
-	scene.add(new Ball(btVector3(.2, -.3, -10), 1, btVector4(0, 0, 1, 1)));
+	scene.add(new Ball(btVector3(0, 0, 0), .5, btVector4(1, 1, .5, 1)));
+	scene.add(new Ball(btVector3(0, 0, 1), .4, btVector4(1, 1, 1, 1)));
+	scene.add(new Ball(btVector3(0, 0, 2), .3, btVector4(1, .5, 1, 1)));
 
-	scene.add(new Light(btVector3(-3, -3, -3)));
+	scene.add(new Ball(btVector3(-.2, 2, 0), 2, btVector4(0, 1, 0, 1)));
+	scene.add(new Ball(btVector3(.2, 2, 0), 2, btVector4(0, 0, 1, 1)));
+
+	scene.add(new Light(btVector3(-3, -3, 10)));
 }
 
 int main() {
