@@ -37,7 +37,7 @@ void GPURayTracer::render(Scene &scene, Buffer &buf) {
 
 	//allocate results buffer
 	auto clResults = device.malloc(sizeof(int32_t) * buf.width * buf.height, CL_MEM_WRITE_ONLY);
-
+//cout <<"first item pos " << sceneItems[0].position[0] << ", " << sceneItems[0].position[1] << ", " << sceneItems[0].position[2] << ", " <<sceneItems[0].position[3] << ", " << endl;
 	//setup arguments
 	rayKernel.setArgs(clSceneInfo.mem(), clSceneItems.mem(), clResults.mem());
 	rayKernel.setDims(0, 0, buf.width);

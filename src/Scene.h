@@ -11,6 +11,8 @@
 #include <vector>
 #include <iostream>
 
+#include <CL/cl.h>
+
 #include "Buffer.h"
 
 class SceneObject {
@@ -112,24 +114,35 @@ public:
 	typedef float float4[4];
 
 	//this should be the same as the structs defined in the kernel:
+	#define PACKED __attribute__ ((aligned(32)))
 	typedef struct SceneInfo {
 		float4 cameraPos, cameraDir;
 		float4 lightPos;//simple for now
-		int width, height, numItems;
-	} SceneInfo;
+		int32_t width, height, numItems;
+	} PACKED SceneInfo;
 
 	typedef struct SceneItem {
 		float4 color, position;
 		float radius;
-	} SceneItem;
+	} PACKED SceneItem;
 
 
 	void toStructs(SceneInfo &info, std::vector<SceneItem> &items) {
-		memcpy(info.cameraPos, cameraPos.m_floats, sizeof(float) * 4);
-		memcpy(info.cameraDir, cameraDir.m_floats, sizeof(float) * 4);
+		auto copy = [] (float4 dest, const btVector3 &src) {
+			//can't memcpy m_floats outright, sometimes bullet has btScaler == double...
+			//like on my version *facepalm*
+
+			dest[0] = src.x();
+			dest[1] = src.y();
+			dest[2] = src.z();
+			dest[3] = src.w();
+		};
+
+		copy(info.cameraPos, cameraPos);
+		copy(info.cameraDir, cameraDir);
 
 		//assume we have a light. (CLEANUP)
-		memcpy(info.lightPos, lights[0]->position.m_floats, sizeof(float) * 4);
+		copy(info.lightPos, lights[0]->position);
 
 		//copy down objects
 		items.clear();
@@ -140,8 +153,11 @@ public:
 			SceneItem item;
 			item.radius = ball.radius;
 
-			memcpy(item.color, ball.color.m_floats, sizeof(float) * 4);
-			memcpy(item.position, ball.position.m_floats, sizeof(float) * 4);
+			copy(item.color, ball.color);
+			copy(item.position, ball.position);
+//std::cout << "floats " << ball.position.x() << ", "<< ball.position.y() << ", "<< ball.position.z() << ", " << "\n";
+//std::cout <<"first item pos " << ball.position.m_floats[0] << ", " << ball.position.m_floats[1] << ", " << ball.position.m_floats[2] << ", " <<ball.position.m_floats[3] << "\n";
+//std::cout <<"first item pos " << item.position[0] << ", " << item.position[1] << ", " << item.position[2] << ", " <<item.position[3] << "\n";
 
 			items.push_back(item);
 		}

@@ -1,15 +1,18 @@
 
-//Scene structs, copied from Scene.h
-typedef struct SceneInfo {
-	float4 cameraPos, cameraDir;
-	float4 lightPos;//simple for now
-	int width, height, numItems;
-} SceneInfo;
+typedef int int32_t;
 
-typedef struct SceneItem {
-	float4 color, position;
-	float radius;
-} SceneItem;
+//Scene structs, copied from Scene.h
+	#define PACKED __attribute__ ((aligned(32)))
+	typedef struct SceneInfo {
+		float4 cameraPos, cameraDir;
+		float4 lightPos;//simple for now
+		int32_t width, height, numItems;
+	} PACKED SceneInfo;
+
+	typedef struct SceneItem {
+		float4 color, position;
+		float radius;
+	} PACKED SceneItem;
 
 
 
@@ -34,14 +37,14 @@ inline int packInt(float4 color) {
 }
 
 //float4 sphereIntersection(float4 start, float4 direction, float4 center, float radius) {
-float4 sphereIntersection(float4 start, float4 end, float4 center, float radius) {
+float4 sphereIntersection(float4 start, float4 direction, float4 center, float radius) {
 	// http://www.dreamincode.net/forums/topic/124203-ray-sphere-intersection/
 	float4 q = center - start;
 	float c = length(q);
-	float v = dot(q, end);
+	float v = dot(q, direction);
 	float d = radius * radius - (c * c - v * v);
 
-	if (d > 0) {
+	if (d < 0) {
 		//no hit
 		return (float4)(-1);
 	} else {
@@ -56,13 +59,13 @@ typedef struct RayHit {
 	float4 pos, color, normal;
 } RayHit;
 
-RayHit castLine(RenderState *state, float4 start, float4 end) {
+RayHit castLine(RenderState *state, float4 start, float4 direction) {
 	int hitIndex = -1;
 	float4 hitPos;
 	//float nearestHit = INF;
 
 	for (int i = 0, numItems = state->sceneInfo->numItems; i < numItems; ++i) {
-		float4 itemHit = sphereIntersection(start, end, state->sceneItems[i].position, state->sceneItems[i].radius);
+		float4 itemHit = sphereIntersection(start, direction, state->sceneItems[i].position, state->sceneItems[i].radius);
 
 		if (itemHit.w >= 0) {
 			hitPos = itemHit;
@@ -104,12 +107,13 @@ __kernel void renderScene(
 	int width = sceneInfo->width;//, height = sceneInfo->height;
 	float scale = cameraSize / (float)width;
 
-	float4 from = sceneInfo->cameraPos + (float4)(x * scale - cameraSize, -y * scale + cameraSize2, 0, 0);
-	float4 to = from + sceneInfo->cameraDir * castDistance;
+	float4 from = sceneInfo->cameraPos + (float4)(x * scale - cameraSize2, -y * scale + cameraSize2, 0, 0);
+//	float4 to = from + sceneInfo->cameraDir * castDistance;
 	float4 color = (float4)(0, .0, 0, 1);
 
 
-	RayHit hit = castLine(&renderState, from, to);
+	RayHit hit = castLine(&renderState, from, sceneInfo->cameraDir);
+//	RayHit hit = castLine(&renderState, from, to);
 	if (hit.pos.w < 0) {
 		color.x = 0;
 	} else {
