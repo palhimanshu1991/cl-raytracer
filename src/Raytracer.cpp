@@ -126,7 +126,7 @@ public:
 			btVector3 normal = (pos - hit.so->position).normalize();//assuming only spheres
 
 
-			if (false) {
+			if (true) {
 				//dump normals
 				return btVector4(
 					normal.x() * .5 + .5,

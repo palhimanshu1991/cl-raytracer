@@ -37,7 +37,7 @@ inline int packInt(float4 color) {
 }
 
 //float4 sphereIntersection(float4 start, float4 direction, float4 center, float radius) {
-float4 sphereIntersection(float4 start, float4 direction, float4 center, float radius) {
+float sphereIntersection(float4 start, float4 direction, float4 center, float radius) {
 	// http://www.dreamincode.net/forums/topic/124203-ray-sphere-intersection/
 	float4 q = center - start;
 	float c = length(q);
@@ -46,12 +46,10 @@ float4 sphereIntersection(float4 start, float4 direction, float4 center, float r
 
 	if (d < 0) {
 		//no hit
-		return (float4)(-1);
+		return -1;
 	} else {
-		return (float4)(0);
+		return v - sqrt(d);//distance from start to intersection along direction
 	}
-
-
 }
 
 typedef struct RayHit {
@@ -61,17 +59,15 @@ typedef struct RayHit {
 
 RayHit castLine(RenderState *state, float4 start, float4 direction) {
 	int hitIndex = -1;
-	float4 hitPos;
-	//float nearestHit = INF;
+	float nearestHit = INFINITY;
 
 	for (int i = 0, numItems = state->sceneInfo->numItems; i < numItems; ++i) {
-		float4 itemHit = sphereIntersection(start, direction, state->sceneItems[i].position, state->sceneItems[i].radius);
+		float hitDistance = sphereIntersection(start, direction, state->sceneItems[i].position, state->sceneItems[i].radius);
 
-		if (itemHit.w >= 0) {
-			hitPos = itemHit;
+		if (hitDistance >= 0 && hitDistance < nearestHit) {
+			//nearest hit so far
+			nearestHit = hitDistance;
 			hitIndex = i;
-			break;
-			//todo: nearest stuff
 		}
 	}
 
@@ -83,10 +79,16 @@ RayHit castLine(RenderState *state, float4 start, float4 direction) {
 			(float4)(0),
 		};
 	} else {
+		//reconstruct hit location
+		float4 hitPos = start + direction * nearestHit;
+
+		//calculate normal of the sphere here
+		float4 normal = normalize(hitPos - state->sceneItems[hitIndex].position);
+
 		return (RayHit){
 			hitPos,
 			state->sceneItems[hitIndex].color,
-			(float4)(1),//todo
+			normal,
 		};
 	}
 }
@@ -117,7 +119,9 @@ __kernel void renderScene(
 	if (hit.pos.w < 0) {
 		color.x = 0;
 	} else {
-		color.x = 1;
+//		color = hit.color;
+		color = hit.normal * .5 + (float4).5;
+//		color = hit.pos / cameraSize + (float4)cameraSize2;
 	}
 
 
