@@ -16,9 +16,10 @@ typedef int int32_t;
 
 
 
-__constant float castDistance = 1000.0;
 __constant float cameraSize = 5.0;
 __constant float cameraSize2 = 5.0 / 2.0;
+
+__constant int maxReflections = 5;
 
 typedef struct RenderState {
 	__global SceneInfo *sceneInfo;
@@ -57,7 +58,7 @@ typedef struct RayHit {
 	float4 pos, color, normal;
 } RayHit;
 
-RayHit castLine(RenderState *state, float4 start, float4 direction) {
+RayHit castRay(RenderState *state, float4 start, float4 direction) {
 	int hitIndex = -1;
 	float nearestHit = INFINITY;
 
@@ -93,6 +94,25 @@ RayHit castLine(RenderState *state, float4 start, float4 direction) {
 	}
 }
 
+float clampToOne(float v) {
+	return clamp(v, (float)0, (float)1);
+}
+
+float diffuseStrength(float4 lightPos, float4 surfacePos, float4 surfaceNormal) {
+	float4 lightNormal = normalize(lightPos - surfacePos);
+	return clampToOne(dot(lightNormal, surfaceNormal));
+}
+
+float length2(float4 vec) {
+	return dot(vec, vec);
+}
+
+float4 reflect(float4 inRay, float4 normal) {
+	// http://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
+	return inRay - ( dot(2 * inRay, normal) / length2(normal) * normal);
+}
+
+
 
 
 /**
@@ -110,19 +130,39 @@ __kernel void renderScene(
 	float scale = cameraSize / (float)width;
 
 	float4 from = sceneInfo->cameraPos + (float4)(x * scale - cameraSize2, -y * scale + cameraSize2, 0, 0);
-//	float4 to = from + sceneInfo->cameraDir * castDistance;
-	float4 color = (float4)(0, .0, 0, 1);
+	float4 direction = sceneInfo->cameraDir;
+	float4 color = (float4)(0, 0, 0, 0);
 
+	float currentContrib = 1;
+	for (int i = 0; i < maxReflections; ++i) {
+		RayHit hit = castRay(&renderState, from, direction);
+		if (hit.pos.w < 0)
+			break;//no more hits
 
-	RayHit hit = castLine(&renderState, from, sceneInfo->cameraDir);
-//	RayHit hit = castLine(&renderState, from, to);
-	if (hit.pos.w < 0) {
-		color.x = 0;
-	} else {
-//		color = hit.color;
-		color = hit.normal * .5 + (float4).5;
-//		color = hit.pos / cameraSize + (float4)cameraSize2;
+		if (false) {
+			color = hit.normal * .5 + (float4).5;
+			break;
+		}
+
+		//calculate the ordinary lighting for this surface at this point
+		float lightStrength = diffuseStrength(sceneInfo->lightPos, hit.pos, hit.normal) * .5;
+		//todo: shadows
+		lightStrength = clampToOne(lightStrength + .1);//ambient, clamp
+
+		//our surface color
+		float4 surfaceColor = hit.color * lightStrength;
+
+		//accum this color
+		color += surfaceColor * currentContrib;
+
+		//setup the next bounce:
+		//the light next bounce will affect the color even less
+		currentContrib *= .8;
+		from = hit.pos;
+		direction = reflect(direction, hit.normal);
 	}
+
+
 
 
 
