@@ -18,7 +18,7 @@ public:
 	Screen(int width, int height) : width(width), height(height) {
 		SDL_Init(SDL_INIT_VIDEO);
 
-		screen = SDL_SetVideoMode(width, width, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);
+		screen = SDL_SetVideoMode(width, height, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);
 		SDL_WM_SetCaption("Raytracer", 0);
 	}
 

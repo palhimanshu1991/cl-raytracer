@@ -25,11 +25,14 @@ void setupScene(Scene &scene) {
 	scene.add(new Ball(btVector3(3, 2, 0), 2, btVector4(0, 0, 1, 1)));
 
 	//big in the back
-	scene.add(new Ball(btVector3(0, 0, -10), 10, btVector4(1, 1, 1, 1)));
+	scene.add(new Ball(btVector3(0, 10, -10), 10, btVector4(1, 1, 1, 1)));
 
 	//things that fall on things
 	scene.add(new Ball(btVector3(.1, 10, .04), .5, btVector4(1, 1, .5, 1)));
-	scene.add(new Ball(btVector3(-2.5, 2, 10), .3, btVector4(1, .5, .5, 1)));
+
+	scene.add(new Ball(btVector3(-3, 12, 0), .3, btVector4(1, .5, .5, 1)));
+	scene.add(new Ball(btVector3(-3, 14, 0), .2, btVector4(.5, 1, .5, 1)));
+	scene.add(new Ball(btVector3(-3, 20, 0), .1, btVector4(.5, .5, 1, 1)));
 
 	scene.add(new Light(btVector3(-3, -3, 20)));
 }
@@ -39,7 +42,7 @@ int main() {
 	Scene scene;
 	setupScene(scene);
 
-	int w = 1440, h = 1440;
+	int w = 2560, h = 1440;
 //	int w = 500, h = 500;
 	Screen screen(w, h);
 	Buffer buf(w, h);
@@ -49,7 +52,7 @@ int main() {
 //	Raytracer tracer(scene, buf);
 
 
-	boost::timer frameTime;
+	boost::timer frameTime, multiFrameTime;
 	float timeDelta = 0;
 	int numFrames = 0;
 	bool running = true, frozen = false;
@@ -69,6 +72,12 @@ int main() {
 		timeDelta = frameTime.elapsed();
 		frameTime.restart();
 //		cout << "Frame took " << timeDelta * 1000 << "ms\n";
+
+		if (++numFrames % 100 == 0) {
+			cout << "FPS: " << numFrames / multiFrameTime.elapsed() << "fps\n";
+			multiFrameTime.restart();
+			numFrames = 0;
+		}
 
 		//read + handle events
 		SDL_Event ev;

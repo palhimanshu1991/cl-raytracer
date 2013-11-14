@@ -16,8 +16,8 @@ typedef int int32_t;
 
 
 
-__constant float cameraSize = 5.0;
-__constant float cameraSize2 = 5.0 / 2.0;
+__constant float cameraSize = 10.0;
+__constant float cameraSize2 = 10.0 / 2.0;
 
 __constant int maxReflections = 5;
 

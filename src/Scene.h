@@ -100,7 +100,7 @@ public:
 	std::vector<Light*> lights;
 	btDiscreteDynamicsWorld *dynamicsWorld;
 
-	btVector3 cameraPos = btVector3(0, 0, 5);
+	btVector3 cameraPos = btVector3(0, -4, 5);
 	btVector3 cameraDir = btVector3(0, 0, -1);
 	float xFov = 45, yFov = 45;
 
@@ -114,7 +114,7 @@ public:
 		dynamicsWorld->setGravity(btVector3(0, -1, 0));//slow-mo
 
 //add some ground
-Ground *g = new Ground(btVector3(0, -2.5, 0), btVector4(0, 0, .2, .1));
+Ground *g = new Ground(btVector3(0, -5, 0), btVector4(0, 0, .2, .1));
 dynamicsWorld->addRigidBody(g->getRigidBody());
 
 	}
