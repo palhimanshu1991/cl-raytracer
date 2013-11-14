@@ -53,7 +53,7 @@ void Raytracer::startRender() {
 			btVector3 from = fromBase + btVector3(x * scale - size2, -y * scale + size2, 0);
 			btVector3 color = trace(from, dir, context);
 
-			buffer(x, y) = toColor(color);
+			//buffer(x, y) = toColor(color);
 
 //			xAng += xStep;
 		}

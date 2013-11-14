@@ -57,7 +57,8 @@ void GPURayTracer::completeRender() {
 	device.finish();
 
 	//save results
-	clResults.copyTo(&buffer.pixels[0]);
+	clResults.copyTo(buffer.getBuffer());
+	buffer.releaseBuffer();
 }
 
 

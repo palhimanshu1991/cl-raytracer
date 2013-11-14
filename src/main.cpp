@@ -41,8 +41,8 @@ int main() {
 
 	int w = 1440, h = 1440;
 //	int w = 500, h = 500;
-	Buffer buf(w, h);
 	Screen screen(w, h);
+	Buffer buf(w, h);
 
 
 	GPURayTracer tracer(scene, buf);
@@ -60,15 +60,15 @@ int main() {
 		tracer.completeRender();
 
 		{
-			boost::timer g;
+//			boost::timer g;
 			screen.display(buf);
-			cout << "Display took " << g.elapsed() * 1000 << "ms\n";
+//			cout << "Display took " << g.elapsed() * 1000 << "ms\n";
 		}
 
 //		if (numFrames & 150)
 		timeDelta = frameTime.elapsed();
 		frameTime.restart();
-		cout << "Render took " << timeDelta * 1000 << "ms\n";
+//		cout << "Frame took " << timeDelta * 1000 << "ms\n";
 
 		//read + handle events
 		SDL_Event ev;

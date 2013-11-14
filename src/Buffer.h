@@ -10,21 +10,37 @@
 
 #include <vector>
 
+#include <SDL/SDL.h>
+
+
 class Buffer {
 public:
 	int width, height;
-	std::vector<int32_t> pixels;
+//	std::vector<int32_t> pixels;
 
-	Buffer(int width = 1024, int height = 768) : width(width), height(height), pixels(width * height) {
+	SDL_Surface *sdlSurface;
+
+	Buffer(int width = 1024, int height = 768) : width(width), height(height) {//, pixels(width * height) {
+		sdlSurface = SDL_GetVideoSurface();
 	}
 
-	int &operator()(int x, int y) {
-		return pixels[x + y * width];
+	int32_t* getBuffer() {
+		SDL_LockSurface(sdlSurface);
+		//for now, we assume we're going to the screen and that it's up and the same size
+		return (int32_t*)sdlSurface->pixels;
 	}
 
-	int operator()(int x, int y) const {
-		return pixels[x + y * width];
+	void releaseBuffer() {
+		SDL_UnlockSurface(sdlSurface);
 	}
+
+//	int &operator()(int x, int y) {
+//		return pixels[x + y * width];
+//	}
+//
+//	int operator()(int x, int y) const {
+//		return pixels[x + y * width];
+//	}
 
 };
 

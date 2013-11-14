@@ -27,14 +27,15 @@ public:
 	}
 
 	void display(const Buffer &buf) {
-		SDL_Rect rect = {0, 0, 1, 1};
-
-		for (int x = 0; x < buf.width; ++x) {
-			for (int y = 0; y < buf.height; ++y) {
-				rect.x = x; rect.y = y;
-				SDL_FillRect(screen, &rect, buf(x, y));
-			}
-		}
+		//right now things are hacked together with buffer
+//		SDL_Rect rect = {0, 0, 1, 1};
+//
+//		for (int x = 0; x < buf.width; ++x) {
+//			for (int y = 0; y < buf.height; ++y) {
+//				rect.x = x; rect.y = y;
+//				SDL_FillRect(screen, &rect, buf(x, y));
+//			}
+//		}
 
 		SDL_Flip(screen);
 	}
