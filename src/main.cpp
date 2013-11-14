@@ -1,41 +1,15 @@
 
-#include <SDL/SDL.h>
 #include <list>
 #include <iostream>
+
 #include "Scene.h"
+#include "Screen.h"
 #include "Raytracer.h"
+#include "GPURayTracer.h"
 
 using namespace std;
 
-class Screen {
-public:
-	int width, height;
-	SDL_Surface *screen;
 
-	Screen(int width, int height) : width(width), height(height) {
-		SDL_Init(SDL_INIT_VIDEO);
-
-		screen = SDL_SetVideoMode(width, width, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);
-		SDL_WM_SetCaption("Raytracer", 0);
-	}
-
-	~Screen() {
-		SDL_Quit();
-	}
-
-	void display(const Buffer &buf) {
-		SDL_Rect rect = {0, 0, 1, 1};
-
-		for (int x = 0; x < buf.width; ++x) {
-			for (int y = 0; y < buf.height; ++y) {
-				rect.x = x; rect.y = y;
-				SDL_FillRect(screen, &rect, buf(x, y));
-			}
-		}
-
-		SDL_Flip(screen);
-	}
-};
 
 void setupScene(Scene &scene) {
 	scene.add(new Ball(btVector3(0, 0, 0), .5, btVector4(1, 1, .5, 1)));
@@ -55,7 +29,8 @@ int main() {
 
 	Buffer buf(w, h);
 	Scene scene;
-	Raytracer tracer;
+	GPURayTracer tracer;
+//	Raytracer tracer;
 
 	setupScene(scene);
 

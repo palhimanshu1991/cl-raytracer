@@ -20,6 +20,7 @@ public:
 	};
 
 	Raytracer() {}
+	virtual ~Raytracer() {}
 
 	void render(Scene &scene, Buffer &buf);
 
