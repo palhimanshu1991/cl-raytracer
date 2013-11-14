@@ -122,8 +122,8 @@ public:
 			btVector3 pos = hit.pos(from, to);
 
 			//the normals Bullet gives are crap, so let's recalcualte it
-			btVector3 normal = hit.normal;
-//			btVector3 normal = (pos - hit.so->position).normalize();//assuming only spheres
+//			btVector3 normal = hit.normal;
+			btVector3 normal = (pos - hit.so->position).normalize();//assuming only spheres
 
 
 			if (false) {

@@ -17,29 +17,6 @@ GPURayTracer::GPURayTracer() :
 	rayKernel(&device, "src/raytrace.cl", "", false)
 {
 
-	/*int size = 5;
-	vector<float> res(size * size);
-
-	RayTracerContext context = {size, size};
-
-	auto clCtx = device.malloc(sizeof(context), CL_MEM_READ_ONLY);
-	auto clRes = device.malloc(res.size() * sizeof(float), CL_MEM_WRITE_ONLY);
-
-	clCtx.copyFrom(&context);
-
-	rayKernel.setArgs(clCtx.mem(), clRes.mem());
-
-	rayKernel.setDims(0, size, size);
-	rayKernel.setDims(1, size, size);
-	rayKernel.run();
-
-	device.finish();
-
-	clRes.copyTo(&res[0]);
-
-	for (unsigned int i = 0; i < res.size(); ++i) {
-		cout << " Vals: " << i << " => " << res[i] << endl;
-	}*/
 }
 
 void GPURayTracer::render(Scene &scene, Buffer &buf) {

@@ -450,7 +450,7 @@ void ocl_kernel::setup(ocl_device* d, std::string str){
     log[logSize] = '\0';
 
 //    if(format)
-      std::cout << function << std::endl;
+//      std::cout << function << std::endl;
 //    else
 //      std::cout << ocl::getFormattedKernel(function) << std::endl;
 
