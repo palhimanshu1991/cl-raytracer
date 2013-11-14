@@ -449,10 +449,10 @@ void ocl_kernel::setup(ocl_device* d, std::string str){
     ocl::printError("OCL_Kernel ("+name+") : Building Program",err);
     log[logSize] = '\0';
 
-    if(format)
+//    if(format)
       std::cout << function << std::endl;
-    else
-      std::cout << ocl::getFormattedKernel(function) << std::endl;
+//    else
+//      std::cout << ocl::getFormattedKernel(function) << std::endl;
 
     std::cout << "OCL_Kernel (" << name << "): Build Log\n" << log;
 

@@ -75,7 +75,7 @@ void GPURayTracer::render(Scene &scene, Buffer &buf) {
 	//save results
 	clResults.copyTo(&buf.pixels[0]);
 
-	cout << "first pixel " << buf.pixels[0]<<endl;
+	//cout << "first pixel " << buf.pixels[0]<<endl;
 }
 
 

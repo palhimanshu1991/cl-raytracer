@@ -12,6 +12,9 @@ typedef struct SceneItem {
 } SceneItem;
 
 
+__constant float castDistance = 1000.0;
+
+/** Converts a [0, 1] rgba vector to a 32 bit ARGB int. */
 inline int packInt(float4 color) {
 	color *= 255.0;
 	return (
@@ -22,7 +25,9 @@ inline int packInt(float4 color) {
 	);
 }
 
-
+/**
+ * Main kernel for raytracing a scene.
+ */
 __kernel void renderScene(
 	__global SceneInfo *sceneInfo,
 	__global SceneItem *sceneItems,
