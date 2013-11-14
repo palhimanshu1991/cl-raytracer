@@ -167,8 +167,7 @@ __kernel void renderScene(
 
 
 
-
-	//float4 color = (float4)(1, x / (float)width, y / (float)height, 1);
+	color = clamp(color, (float)0, (float)1);
 	results[x + y * sceneInfo->width] = packInt(color);
 }
 

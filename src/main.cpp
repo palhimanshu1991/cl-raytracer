@@ -28,7 +28,8 @@ void setupScene(Scene &scene) {
 }
 
 int main() {
-	int w = 500, h = 500;
+	int w = 1440, h = 1440;
+//	int w = 500, h = 500;
 
 	Buffer buf(w, h);
 	Scene scene;
