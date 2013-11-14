@@ -26,9 +26,7 @@ inline int toColor(const btVector3 &color) {
 	return (r << 16) | (g << 8) | (b);
 }
 
-void Raytracer::render(Scene &scene, Buffer &buf) {
-	this->scene = &scene;
-
+void Raytracer::startRender() {
 //	float yStep = scene.yFov / buf.height, yAng = -scene.yFov / 2.0;
 //	float xStep = scene.xFov / buf.width, xAng = -scene.xFov / 2.0;
 //
@@ -41,7 +39,7 @@ void Raytracer::render(Scene &scene, Buffer &buf) {
 
 	btVector3 fromBase = scene.cameraPos, dir = scene.cameraDir;
 	float size = 5, size2 = size / 2.0;
-	float scale = size / (float)buf.width;
+	float scale = size / (float)buffer.width;
 
 	RaytracerContext context = {
 		this,
@@ -49,18 +47,22 @@ void Raytracer::render(Scene &scene, Buffer &buf) {
 		0
 	};
 
-	for (int y = 0; y < buf.height; ++y) {
+	for (int y = 0; y < buffer.height; ++y) {
 
-		for (int x = 0; x < buf.width; ++x) {
+		for (int x = 0; x < buffer.width; ++x) {
 			btVector3 from = fromBase + btVector3(x * scale - size2, -y * scale + size2, 0);
 			btVector3 color = trace(from, dir, context);
 
-			buf(x, y) = toColor(color);
+			buffer(x, y) = toColor(color);
 
 //			xAng += xStep;
 		}
 //		yAng += yStep;
 	}
+}
+
+void Raytracer::completeRender() {
+	//since we aren't async, everything was already done in startRender
 }
 
 #include "ShaderFuncs.h"
@@ -180,7 +182,7 @@ btVector4 Raytracer::trace(const btVector3 &from, const btVector3 &direction, co
 	btVector3 to = from + direction * 1000;
 
 	RayHit rayHit(newContext, from, to);
-	scene->dynamicsWorld->rayTest(from, to, rayHit);
+	scene.dynamicsWorld->rayTest(from, to, rayHit);
 
 	if (!rayHit.hasHit())
 		return getSky();

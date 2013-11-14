@@ -30,7 +30,7 @@ public:
 	btRigidBody *rb = nullptr;
 };
 
-class Ball : public SceneObject{
+class Ball : public SceneObject {
 public:
 	Ball(btVector3 pos, float radius, btVector4 color) : shape(radius) {
 		position = pos;
@@ -60,7 +60,32 @@ public:
 	}
 
 	btSphereShape shape;
+};
 
+class Ground : public SceneObject {
+public:
+	Ground(btVector3 pos, btVector4 color) : shape(btVector3(0, 1, 0), 0) {
+		position = pos;
+		this->color = color;
+	}
+
+	btRigidBody* getRigidBody() {
+		if (!rb) {
+			btRigidBody::btRigidBodyConstructionInfo rbci(
+				0,
+				&ms,
+				&shape,
+				btVector3(1, 1, 1)
+			);
+			rb = new btRigidBody(rbci);
+			rb->setWorldTransform(btTransform(btQuaternion::getIdentity(), position));
+			rb->setUserPointer(this);
+		}
+
+		return rb;
+	}
+
+	btStaticPlaneShape shape;
 };
 
 class Light {
@@ -86,15 +111,28 @@ public:
 		dispatcher = new btCollisionDispatcher(collisionConfiguration);
 		solver = new btSequentialImpulseConstraintSolver();
 		dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+		dynamicsWorld->setGravity(btVector3(0, -1, 0));//slow-mo
+
+//add some ground
+Ground *g = new Ground(btVector3(0, -2.5, 0), btVector4(0, 0, .2, .1));
+dynamicsWorld->addRigidBody(g->getRigidBody());
+
 	}
 
 	void add(SceneObject *obj) {
 		objects.push_back(obj);
-		dynamicsWorld->addRigidBody(obj->getRigidBody());
+
+		btRigidBody *rb = obj->getRigidBody();
+		rb->setSleepingThresholds(.0001, .0001);
+		dynamicsWorld->addRigidBody(rb);
 	}
 
 	void add(Light *obj) {
 		lights.push_back(obj);
+	}
+
+	void stepSimulation(float time) {
+		dynamicsWorld->stepSimulation(time, 20);
 	}
 
 	virtual ~Scene() {
@@ -154,7 +192,7 @@ public:
 			item.radius = ball.radius;
 
 			copy(item.color, ball.color);
-			copy(item.position, ball.position);
+			copy(item.position, ball.ms.m_graphicsWorldTrans.getOrigin());
 //std::cout << "floats " << ball.position.x() << ", "<< ball.position.y() << ", "<< ball.position.z() << ", " << "\n";
 //std::cout <<"first item pos " << ball.position.m_floats[0] << ", " << ball.position.m_floats[1] << ", " << ball.position.m_floats[2] << ", " <<ball.position.m_floats[3] << "\n";
 //std::cout <<"first item pos " << item.position[0] << ", " << item.position[1] << ", " << item.position[2] << ", " <<item.position[3] << "\n";

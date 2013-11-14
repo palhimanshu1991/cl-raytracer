@@ -14,9 +14,10 @@
 
 class GPURayTracer : public Raytracer {
 public:
-	GPURayTracer();
-	void render(Scene &scene, Buffer &buf);
-	virtual ~GPURayTracer() {}
+	GPURayTracer(Scene &scene, Buffer &buf);
+	virtual ~GPURayTracer();
+	virtual void startRender();
+	virtual void completeRender();
 
 protected:
 	ocl_device device;
@@ -27,6 +28,8 @@ protected:
 		float cameraPos[4], cameraDir[4];
 	};
 
+
+	ocl_mem clSceneInfo, clSceneItems, clResults;
 };
 
 #endif	/* GPURAYTRACER_H */
