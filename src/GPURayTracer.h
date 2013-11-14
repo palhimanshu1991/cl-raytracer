@@ -16,11 +16,16 @@ class GPURayTracer : public Raytracer {
 public:
 	GPURayTracer();
 	void render(Scene &scene, Buffer &buf);
-	virtual ~GPURayTracer();
+	virtual ~GPURayTracer() {}
 
 protected:
 	ocl_device device;
 	ocl_kernel rayKernel;
+
+	struct RayTracerContext {
+		int width, height;
+		float cameraPos[4], cameraDir[4];
+	};
 
 };
 

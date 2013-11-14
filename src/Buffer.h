@@ -13,7 +13,7 @@
 class Buffer {
 public:
 	int width, height;
-	std::vector<int> pixels;
+	std::vector<int32_t> pixels;
 
 	Buffer(int width = 1024, int height = 768) : width(width), height(height), pixels(width * height) {
 	}

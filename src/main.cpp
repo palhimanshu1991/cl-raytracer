@@ -2,6 +2,9 @@
 #include <list>
 #include <iostream>
 
+#include <boost/timer.hpp>
+
+
 #include "Scene.h"
 #include "Screen.h"
 #include "Raytracer.h"
@@ -34,7 +37,11 @@ int main() {
 
 	setupScene(scene);
 
-	tracer.render(scene, buf);
+	{
+		boost::timer t;
+		tracer.render(scene, buf);
+		cout << "Render took " << t.elapsed() * 1000 << "ms\n";
+	}
 
 	Screen screen(w, h);
 	screen.display(buf);

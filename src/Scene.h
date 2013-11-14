@@ -8,7 +8,7 @@
 #define	SCENE_H
 
 #include <bullet/btBulletDynamicsCommon.h>
-#include <list>
+#include <vector>
 #include <iostream>
 
 #include "Buffer.h"
@@ -69,8 +69,8 @@ public:
 
 class Scene {
 public:
-	std::list<SceneObject*> objects;
-	std::list<Light*> lights;
+	std::vector<SceneObject*> objects;
+	std::vector<Light*> lights;
 	btDiscreteDynamicsWorld *dynamicsWorld;
 
 	btVector3 cameraPos = btVector3(0, 0, 5);
@@ -106,6 +106,47 @@ public:
 		delete dispatcher;
 		delete collisionConfiguration;
 		delete broadphase;
+	}
+
+
+	typedef float float4[4];
+
+	//this should be the same as the structs defined in the kernel:
+	typedef struct SceneInfo {
+		float4 cameraPos, cameraDir;
+		float4 lightPos;//simple for now
+		int width, height, numItems;
+	} SceneInfo;
+
+	typedef struct SceneItem {
+		float4 color, position;
+		float radius;
+	} SceneItem;
+
+
+	void toStructs(SceneInfo &info, std::vector<SceneItem> &items) {
+		memcpy(info.cameraPos, cameraPos.m_floats, sizeof(float) * 4);
+		memcpy(info.cameraDir, cameraDir.m_floats, sizeof(float) * 4);
+
+		//assume we have a light. (CLEANUP)
+		memcpy(info.lightPos, lights[0]->position.m_floats, sizeof(float) * 4);
+
+		//copy down objects
+		items.clear();
+		for (SceneObject *obj : objects) {
+			//assume everything is a sphere (CLEANUP)
+			Ball &ball = *static_cast<Ball*>(obj);
+
+			SceneItem item;
+			item.radius = ball.radius;
+
+			memcpy(item.color, ball.color.m_floats, sizeof(float) * 4);
+			memcpy(item.position, ball.position.m_floats, sizeof(float) * 4);
+
+			items.push_back(item);
+		}
+
+		info.numItems = items.size();
 	}
 
 protected:
